@@ -1,43 +1,29 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"github.com/buaazp/fasthttprouter"
-	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 	"github.com/valyala/fasthttp"
 	"log"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 )
 
+var (
+	questionAnswerJs string
+	zhuanLanJs       string
+)
+
+func init() {
+	initCookies() //初始化cookies
+	questionAnswerJs = initQuestionAnswerJs()
+	zhuanLanJs = initZhuanLanJs()
+}
+
 func main() {
-
 	router := fasthttprouter.New()
-
-	options := append(chromedp.DefaultExecAllocatorOptions[:],
-		chromedp.Flag(`headless`, false),
-		chromedp.DisableGPU,
-		chromedp.Flag(`disable-extensions`, false),
-		chromedp.Flag(`enable-automation`, false),
-		chromedp.UserAgent(`Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36`),
-	)
-
-	allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), options...)
-	defer cancel()
-
-	logCtx, cancel := chromedp.NewContext(
-		allocCtx,
-		chromedp.WithDebugf(log.Printf),
-	)
-
-	defer cancel()
-
-	chromeCtx, cancel := context.WithTimeout(logCtx, 1*time.Hour)
-	defer cancel()
 
 	router.GET("/", func(ctx *fasthttp.RequestCtx) {
 
@@ -55,13 +41,34 @@ func main() {
 
 		zhihuUrl := query.Query().Get("url")
 
+		options := append(chromedp.DefaultExecAllocatorOptions[:],
+			chromedp.Flag(`headless`, false),
+			chromedp.DisableGPU,
+			chromedp.Flag(`disable-extensions`, false),
+			chromedp.Flag(`enable-automation`, false),
+			chromedp.UserAgent(`Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36`),
+		)
+
 		if strings.HasPrefix(zhihuUrl, "https://www.zhihu.com") && strings.Contains(zhihuUrl, "question") && strings.Contains(zhihuUrl, "answer") {
+
+			allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), options...)
+			defer cancel()
+
+			logCtx, cancel := chromedp.NewContext(
+				allocCtx,
+				chromedp.WithDebugf(log.Printf),
+			)
+
+			defer cancel()
+
+			chromeCtx, cancel := context.WithTimeout(logCtx, 10*time.Second)
+			defer cancel()
+
 			var example string
 
 			err = chromedp.Run(chromeCtx,
 				SetCookie(),
 				chromedp.Navigate(zhihuUrl),
-				chromedp.WaitVisible(`.QuestionAnswer-content`),
 				chromedp.Evaluate(`
 		try {
 		 let DOMContentLoadedCode = document.createElement('div')
@@ -103,12 +110,18 @@ func main() {
 		}
 		
 		`, nil),
+				chromedp.WaitVisible(`#zhihuDOMContentLoaded`),
 				chromedp.OuterHTML(`.QuestionAnswer-content`, &example),
-				ShowCookies(),
 			)
 			if err != nil {
 				log.Println(err)
 			}
+
+			if len(example) == 0 {
+				ctx.SetStatusCode(fasthttp.StatusNotFound)
+				return
+			}
+
 			res := `
 		<!DOCTYPE html>
 		<html lang="en">
@@ -130,70 +143,13 @@ func main() {
 			return
 		}
 
+		if strings.HasPrefix(zhihuUrl, "https://zhuanlan.zhihu.com") && strings.Contains(zhihuUrl, "/p/") {
+
+		}
+
 		ctx.SetStatusCode(fasthttp.StatusNotFound)
 
 	})
 
 	log.Fatal(fasthttp.ListenAndServe(":12345", router.Handler))
-
-}
-
-type cookie struct {
-	Domain   string
-	HttpOnly bool
-	Path     string
-	Secure   bool
-	Expiry   string
-	Name     string
-	Value    string
-}
-
-var (
-	cookies = make([]cookie, 0)
-)
-
-func init() {
-	txt, err := os.Open("zhihu.com_cookies.txt")
-	if err != nil {
-		return
-	}
-	defer func(txt *os.File) {
-		err := txt.Close()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}(txt)
-	scanner := bufio.NewScanner(txt)
-	scanner.Split(bufio.ScanLines)
-	for scanner.Scan() {
-		sts := strings.Split(scanner.Text(), "\t")
-		cookies = append(cookies, cookie{Domain: sts[0], HttpOnly: sts[1] == "true", Path: sts[2], Secure: sts[3] == "true", Name: sts[5], Value: sts[6]})
-	}
-}
-
-func SetCookie() chromedp.Action {
-	return chromedp.ActionFunc(func(ctx context.Context) error {
-		for _, v := range cookies {
-			_ = network.SetCookie(v.Name, v.Value).
-				WithDomain(v.Domain).
-				WithPath(v.Path).
-				WithHTTPOnly(v.HttpOnly).
-				WithSecure(v.Secure).
-				Do(ctx)
-		}
-		return nil
-	})
-}
-
-func ShowCookies() chromedp.Action {
-	return chromedp.ActionFunc(func(ctx context.Context) error {
-		cookies, err := network.GetCookies().Do(ctx)
-		if err != nil {
-			return err
-		}
-		for i, cookie := range cookies {
-			log.Printf("chrome cookie %d: %+v", i, cookie)
-		}
-		return nil
-	})
 }
