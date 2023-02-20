@@ -1,7 +1,7 @@
 try {
     let DOMContentLoadedCode = document.createElement('div')
     DOMContentLoadedCode.id = 'zhihuDOMContentLoaded'
-    document.body.appendChild(DOMContentLoadedCode)
+
     const mainDom = document.querySelector('div.QuestionAnswer-content')
     const titleDom = document.querySelector('.QuestionHeader-title')
     if (mainDom && titleDom) {
@@ -33,6 +33,8 @@ try {
         document.querySelector('.ContentItem-meta').remove()
         document.querySelector('.ContentItem-actions').remove()
     }
+
+    document.body.appendChild(DOMContentLoadedCode)
 } catch (error) {
     console.error('zhihu-photo-sharing error :' + error)
 }
