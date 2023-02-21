@@ -14,6 +14,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.15.15 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.44.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect

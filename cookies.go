@@ -24,7 +24,7 @@ var (
 	cookies = make([]cookie, 0)
 )
 
-func initCookies() {
+func init() {
 	txt, err := os.Open("zhihu.com_cookies.txt")
 	if err != nil {
 		return

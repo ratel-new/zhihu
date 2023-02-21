@@ -17,7 +17,6 @@ var (
 )
 
 func init() {
-	initCookies() //初始化cookies
 	questionAnswerJs = initQuestionAnswerJs()
 	zhuanLanJs = initZhuanLanJs()
 }
@@ -44,10 +43,18 @@ func main() {
 		options := append(chromedp.DefaultExecAllocatorOptions[:],
 			chromedp.Flag(`headless`, false),
 			chromedp.DisableGPU,
-			chromedp.Flag(`disable-extensions`, false),
 			chromedp.Flag(`enable-automation`, false),
 			chromedp.UserAgent(`Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36`),
 		)
+
+		value, b := getCache(zhihuUrl)
+
+		if b {
+			ctx.SetContentType("text/html")
+			ctx.SetStatusCode(fasthttp.StatusOK)
+			ctx.SetBodyString(value)
+			return
+		}
 
 		if strings.HasPrefix(zhihuUrl, "https://www.zhihu.com") && strings.Contains(zhihuUrl, "question") && strings.Contains(zhihuUrl, "answer") {
 
@@ -96,6 +103,8 @@ func main() {
 		</body>
 		</html>
 		`
+
+			setCache(zhihuUrl, res)
 
 			ctx.SetContentType("text/html")
 			ctx.SetStatusCode(fasthttp.StatusOK)
@@ -151,6 +160,9 @@ func main() {
 		</body>
 		</html>
 		`
+
+			setCache(zhihuUrl, res)
+
 			ctx.SetContentType("text/html")
 			ctx.SetStatusCode(fasthttp.StatusOK)
 			ctx.SetBodyString(res)
