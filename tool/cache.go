@@ -1,4 +1,4 @@
-package main
+package tool
 
 import (
 	"github.com/patrickmn/go-cache"
@@ -13,14 +13,14 @@ func init() {
 	CacheVar = cache.New(5*time.Minute, 10*time.Minute)
 }
 
-func getCache(key string) (string, bool) {
+func GetHtmlCache(key string) (*Fill, bool) {
 	value, b := CacheVar.Get(key)
 	if b {
-		return value.(string), b
+		return value.(*Fill), b
 	}
-	return "", b
+	return nil, b
 }
 
-func setCache(key string, value string) {
+func SetCache(key string, value *Fill) {
 	CacheVar.Set(key, value, cache.DefaultExpiration)
 }
