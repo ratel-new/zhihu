@@ -1,8 +1,6 @@
 package api
 
 import (
-	jsonparser "climb/json"
-	"climb/tool"
 	"context"
 	"github.com/chromedp/chromedp"
 	"github.com/valyala/fasthttp"
@@ -12,6 +10,8 @@ import (
 	"path"
 	"strings"
 	"time"
+	jsonparser "zhihu/json"
+	"zhihu/tool"
 )
 
 var (

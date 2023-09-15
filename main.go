@@ -1,10 +1,10 @@
 package main
 
 import (
-	"climb/api"
 	"github.com/buaazp/fasthttprouter"
 	"github.com/valyala/fasthttp"
 	"log"
+	"zhihu/api"
 )
 
 func main() {
