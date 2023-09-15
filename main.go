@@ -10,5 +10,6 @@ import (
 func main() {
 	router := fasthttprouter.New()
 	router.GET("/", api.ShareCore)
+	router.GET("/decapitate", api.DecapitateCore)
 	log.Fatal(fasthttp.ListenAndServe(":12345", router.Handler))
 }

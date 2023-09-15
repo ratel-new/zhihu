@@ -14,19 +14,6 @@ import (
 	"zhihu/tool"
 )
 
-var (
-	options []chromedp.ExecAllocatorOption
-)
-
-func init() {
-	options = append(chromedp.DefaultExecAllocatorOptions[:],
-		chromedp.Flag(`headless`, true),
-		chromedp.DisableGPU,
-		chromedp.Flag(`enable-automation`, false),
-		chromedp.UserAgent(`Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36`),
-	)
-}
-
 func ShareCore(ctx *fasthttp.RequestCtx) {
 	body := ctx.Request.RequestURI()
 	query, err := url.Parse(string(body))
@@ -140,5 +127,4 @@ func browserExecution(IncURL string, ctx *fasthttp.RequestCtx, framework []strin
 
 	ctx.SetContentType("text/html")
 	ctx.SetStatusCode(fasthttp.StatusOK)
-	return
 }
