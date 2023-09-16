@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"github.com/chromedp/chromedp"
 	"github.com/valyala/fasthttp"
 	"html/template"
@@ -13,8 +14,10 @@ import (
 
 func DecapitateCore(ctx *fasthttp.RequestCtx) {
 
-	allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), options...)
-	defer cancel()
+	var allocCtx context.Context
+	var cancel context.CancelFunc
+
+	allocCtx, cancel = chromedp.NewExecAllocator(context.Background(), options...)
 
 	logCtx, cancel := chromedp.NewContext(
 		allocCtx,
@@ -23,7 +26,7 @@ func DecapitateCore(ctx *fasthttp.RequestCtx) {
 
 	defer cancel()
 
-	chromeCtx, cancel := context.WithTimeout(logCtx, 10*time.Second)
+	chromeCtx, cancel := context.WithTimeout(logCtx, 20*time.Second)
 	defer cancel()
 	js, _ := os.ReadFile("executionJs/decapitate.js")
 	var js_initialData_processed string
@@ -34,7 +37,7 @@ func DecapitateCore(ctx *fasthttp.RequestCtx) {
 		chromedp.WaitVisible("#js-initialData-processed"),
 		chromedp.TextContent(`#js-initialData-processed`, &js_initialData_processed))
 	if err != nil {
-		ctx.Error(`run err`, 500)
+		ctx.Error(fmt.Sprint(err), 500)
 		return
 	}
 
