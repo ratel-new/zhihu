@@ -35,7 +35,6 @@ func ShareCore(ctx *fasthttp.RequestCtx) {
 			[]string{"initialState", "entities", "answers", path.Base(IncURL), "content"},
 			[]string{"initialState", "entities", "answers", path.Base(IncURL), "question", "title"},
 			[]chromedp.Action{
-				tool.SetCookie(),
 				chromedp.Navigate(IncURL),
 			}...,
 		)
@@ -47,7 +46,6 @@ func ShareCore(ctx *fasthttp.RequestCtx) {
 			[]string{"initialState", "entities", "articles", path.Base(IncURL), "content"},
 			[]string{"initialState", "entities", "articles", path.Base(IncURL), "title"},
 			[]chromedp.Action{
-				tool.SetCookie(),
 				chromedp.Navigate(IncURL),
 			}...,
 		)
